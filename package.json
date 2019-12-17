@@ -32,7 +32,15 @@
   "name": "donut",
   "version": "1.0.0",
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "author": "Jeff Reiner <jeff@reiner.design/>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mirshko/donut.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mirshko/donut/issues"
+  },
+  "homepage": "https://github.com/mirshko/donut#readme",
+  "description": "Donut"
 }
