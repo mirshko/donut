@@ -18,7 +18,7 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "buildNumber": 1,
+      "buildNumber": "1",
       "supportsTablet": false,
       "bundleIdentifier": "com.reiner.donut"
     }
