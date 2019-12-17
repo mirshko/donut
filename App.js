@@ -2,7 +2,7 @@ import SegmentedControlIOS from "@react-native-community/segmented-control";
 import BigNumber from "bignumber.js";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { ethers } from "ethers";
+import { ethers, utils } from "ethers";
 import "ethers/dist/shims.js";
 import * as LocalAuthentication from "expo-local-authentication";
 import * as Random from "expo-random";
@@ -38,7 +38,7 @@ const ACTIVE_NETWORK = chainIds[3];
 const API_BASE = "https://ethereum-api.xyz";
 
 const toFixed = (value, decimals) =>
-  new BigNumber(`${value}`).toFixed(decimals).toString();
+  new BigNumber(value).toFixed(decimals).toString();
 
 const formatTimestamp = ts => dayjs(Number(ts)).fromNow();
 
@@ -48,11 +48,11 @@ const parseTxs = (txs, address) =>
     let state = "";
 
     if (tx.input === "0x") {
-      action = "ETH Transfer";
+      action = "ETH";
     } else if (tx.input !== "0x" && tx.operations.length === 0) {
       action = "Smart Contract Execution";
     } else if (tx.operations.length > 0) {
-      action = "ERC-20 Transfer";
+      action = "ERC20";
     }
 
     if (tx.error === true) {
@@ -72,8 +72,9 @@ const parseTxs = (txs, address) =>
       timestamp: formatTimestamp(tx.timestamp),
       to: tx.to,
       from: tx.from,
+      operations: tx.operations,
       symbol: tx.asset.symbol,
-      value: tx.value,
+      value: toFixed(utils.formatEther(tx.value), 2),
       decimals: tx.asset.decimals
     };
   });
@@ -83,7 +84,7 @@ const parseBalance = bal =>
     symbol,
     decimals,
     balance,
-    native: toFixed(balance, 2),
+    native: toFixed(utils.formatEther(balance), 4),
     name
   }));
 
@@ -105,14 +106,12 @@ const WalletTxs = ({ address, chainId }) => {
       {data &&
         data.result.length > 0 &&
         parseTxs(data.result, address).map((tx, i) => {
-          let human = "";
+          let human = "Smart Contract Interaction";
 
           if (tx.state === "Received") {
             human = `You received ${tx.value} ${tx.symbol} ${tx.timestamp}`;
           } else if (tx.state === "Sent") {
-            human = `You sent ${tx.value} ${tx.symbol} to ${truncateAddress(
-              tx.to
-            )} ${tx.timestamp}`;
+            human = `You sent ${tx.value} ${tx.symbol} ${tx.timestamp}`;
           } else if (tx.state === "Self") {
             human = `You sent ${tx.value} ${tx.symbol} to yourself ${tx.timestamp}`;
           } else if (tx.state === "Error") {
@@ -120,9 +119,21 @@ const WalletTxs = ({ address, chainId }) => {
           }
 
           return (
-            <Text key={i} style={{ marginBottom: 16 }}>
-              {human}
-            </Text>
+            <View
+              key={i}
+              style={{
+                marginBottom: 16,
+                display: "flex",
+                flexDirection: "row"
+              }}
+            >
+              <Text style={{ marginRight: 8, fontWeight: "bold" }}>
+                {tx.action}
+              </Text>
+              <Text>
+                {tx.action === "Smart Contract Execution" ? null : `${human}`}
+              </Text>
+            </View>
           );
         })}
     </View>
@@ -145,11 +156,13 @@ const WalletBalance = ({ address, chainId }) => {
 
       {data &&
         data.result.length > 0 &&
-        parseBalance(data.result).map(coin => (
-          <Text key={coin.symbol}>
-            {coin.symbol}: {coin.native}
-          </Text>
-        ))}
+        parseBalance(data.result).map(coin => {
+          return (
+            <Text key={coin.symbol}>
+              {coin.symbol}: {coin.native}
+            </Text>
+          );
+        })}
     </View>
   );
 };
@@ -194,12 +207,8 @@ export default function App() {
         "secureDonutWalletMnemonic"
       );
 
-      console.log("Found secureDonutWalletMnemonic");
-
       return mnemonic;
     } catch (e) {
-      console.log("No secureDonutWalletMnemonic Present");
-
       console.error(e);
     }
   };
@@ -215,7 +224,6 @@ export default function App() {
           { text: "Copy", onPress: () => Clipboard.setString(mnemonic) }
         ]);
       } else {
-        console.log("Failed LocalAuthentication.authenticateAsync!");
       }
     } catch (e) {
       console.error(e);
@@ -228,8 +236,6 @@ export default function App() {
 
       if (!!(await network)) setActiveNetwork(await network);
     } catch (e) {
-      console.log("No Active Network Set!");
-
       console.error(e);
     }
   };
@@ -250,8 +256,6 @@ export default function App() {
 
       setAddress(await address);
     } catch (e) {
-      console.log("No Wallet Address Present");
-
       console.error(e);
     }
   };
@@ -329,8 +333,6 @@ export default function App() {
       await store.delete("donutWalletAddress");
 
       setAddress("");
-
-      console.log("Wallet Deleted");
     } catch (e) {
       console.error(e);
     }
