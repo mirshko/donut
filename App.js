@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { ethers, utils } from "ethers";
 import "ethers/dist/shims.js";
+import { SplashScreen } from "expo";
 import * as LocalAuthentication from "expo-local-authentication";
 import * as Random from "expo-random";
 import * as SecureStore from "expo-secure-store";
@@ -192,6 +193,8 @@ export default function App() {
   const [activeNetwork, setActiveNetwork] = useState(1);
 
   useEffect(() => {
+    SplashScreen.preventAutoHide();
+
     try {
       getActiveNetwork();
 
@@ -254,7 +257,11 @@ export default function App() {
     try {
       const address = await store.get("donutWalletAddress");
 
-      setAddress(await address);
+      if (await address) {
+        setAddress(await address);
+      }
+
+      SplashScreen.hide();
     } catch (e) {
       console.error(e);
     }
@@ -292,11 +299,16 @@ export default function App() {
   };
 
   const restoreWalletPrompt = () => {
-    Alert.prompt(
-      "Import",
-      "Seed phrase",
-      async phrase => await restoreWallet(phrase)
-    );
+    Alert.prompt("Import", "Import your seed phrase to restore your wallet.", [
+      {
+        style: "cancel",
+        text: "Cancel"
+      },
+      {
+        text: "Import",
+        onPress: async phrase => await restoreWallet(phrase)
+      }
+    ]);
   };
 
   const createNewWallet = async () => {
@@ -309,21 +321,27 @@ export default function App() {
       return;
     }
 
-    const randomBytes = await Random.getRandomBytesAsync(16);
+    try {
+      const randomBytes = await Random.getRandomBytesAsync(16);
 
-    const wallet = ethers.Wallet.createRandom({ extraEntropy: randomBytes });
+      const wallet = ethers.Wallet.createRandom({ extraEntropy: randomBytes });
 
-    /**
-     * Store new wallet mnemonic in SecureStorage
-     */
-    SecureStore.setItemAsync("secureDonutWalletMnemonic", wallet.mnemonic, {
-      keychainAccessible: SecureStore.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY
-    });
+      /**
+       * Store new wallet mnemonic in SecureStorage
+       */
+      SecureStore.setItemAsync("secureDonutWalletMnemonic", wallet.mnemonic, {
+        keychainAccessible: SecureStore.WHEN_PASSCODE_SET_THIS_DEVICE_ONLY
+      });
 
-    /**
-     * Store new wallet address in AsyncStorage
-     */
-    await store.save("donutWalletAddress", wallet.address);
+      /**
+       * Store new wallet address in AsyncStorage
+       */
+      await store.save("donutWalletAddress", wallet.address);
+
+      await getWalletAddress();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const deleteWallet = async () => {
@@ -419,7 +437,7 @@ export default function App() {
               display: "flex"
             }}
           >
-            {activeNetwork !== 1 && (
+            {activeNetwork !== 1 && !!address && (
               <NetworkIdentifier {...chainIds[activeNetwork]} />
             )}
           </View>
@@ -443,13 +461,19 @@ export default function App() {
               display: "flex"
             }}
           >
-            <Button title="Settings" onPress={openSettings} />
+            {!!address && <Button title="Settings" onPress={openSettings} />}
           </View>
         </View>
 
         {!address && (
-          <View style={styles.section}>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center"
+            }}
+          >
             <Button onPress={createNewWallet} title="Create New Wallet" />
+
             <Button
               onPress={restoreWalletPrompt}
               title="Import Existing Wallet"
