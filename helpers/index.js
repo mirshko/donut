@@ -65,14 +65,15 @@ export const parseTx = (tx, address) => {
     // action,
     // state,
     hash: tx.hash,
+    ts: tx.timestamp,
     timestamp: formatTimestamp(tx.timestamp),
     to: tx.to,
     from: tx.from,
     operations: tx.operations,
-    symbol: tx.asset.symbol,
+    // symbol: tx.asset.symbol,
     // value: toFixed(utils.formatEther(tx.value), 2),
-    value: tx.value,
-    decimals: tx.asset.decimals
+    value: tx.value
+    // decimals: tx.asset.decimals
   };
 };
 
@@ -90,3 +91,68 @@ export const parseBalance = bal =>
     native: toFixed(utils.formatEther(balance), 4),
     name
   }));
+
+/**
+ * @name isSelf
+ * @description Returns true if the from address of the transaction is the same as the user's address
+ *
+ * @param {String} from
+ * @param {String} address
+ *
+ * @returns {Boolean}
+ */
+export const isSent = (from, address) =>
+  from.toLowerCase() === address.toLowerCase() ? true : false;
+
+/**
+ * @name isReceived
+ * @description Returns true if the to address of the transaction is the same as the user's address
+ *
+ * @param {String} to
+ * @param {String} address
+ *
+ * @returns {Boolean}
+ */
+export const isReceived = (to, address) =>
+  to.toLowerCase() === address.toLowerCase() ? true : false;
+
+/**
+ * @name isSelf
+ * @description Returns true if the to address of the transaction is the same as the from address
+ *
+ * @param {String} to
+ * @param {String} from
+ *
+ * @returns {Boolean}
+ */
+export const isSelf = (to, from) =>
+  to.toLowerCase() === from.toLowerCase() ? true : false;
+
+/**
+ * @name parseTxState
+ * @param {Array} txs
+ * @param {String} address
+ *
+ * @returns {Array}
+ */
+export const parseTxState = (txs, address) =>
+  txs.map(rawTx => {
+    const { to, from, error } = rawTx;
+
+    let state = "Unhandled";
+
+    if (error === true) {
+      state = "Error";
+    } else if (isSelf(to, from)) {
+      state = "Self";
+    } else if (isSent(from, address)) {
+      state = "Sent";
+    } else if (isReceived(to, address)) {
+      state = "Received";
+    }
+
+    return {
+      state,
+      ...rawTx
+    };
+  });

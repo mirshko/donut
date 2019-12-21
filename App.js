@@ -21,13 +21,26 @@ import {
 } from "react-native";
 import store from "react-native-simple-store";
 import useSWR from "swr";
-import { parseBalance, truncateAddress } from "./helpers";
+import {
+  parseBalance,
+  parseTx,
+  toFixed,
+  formatTimestamp,
+  isReceived,
+  isSelf,
+  isSent,
+  parseTxState,
+  truncateAddress
+} from "./helpers";
 import chainIds, { NetworkIdentifier } from "./lib/chainIds";
 import fetcher from "./lib/fetcher";
 
 ethers.errors.setLogLevel("error");
 
 const API_BASE = "https://ethereum-api.xyz";
+
+const apiHasResults = data =>
+  !!data && data.success === true && data.result.length > 0 ? true : false;
 
 const WalletTxs = ({ address, chainId }) => {
   const { data, error } = useSWR(
@@ -38,26 +51,24 @@ const WalletTxs = ({ address, chainId }) => {
 
   return (
     <View>
-      {!data && <ActivityIndicator size="large" />}
+      {!data && <ActivityIndicator />}
 
       {(error || (data && data.success === false)) && (
         <Text>{JSON.stringify(error)}</Text>
       )}
 
-      {data &&
-        data.result.length > 0 &&
-        parseTxs(data.result, address).map((tx, i) => {
+      {apiHasResults(data) &&
+        parseTxState(data.result, address).map((tx, i) => {
           return (
             <View
               key={i}
               style={{
-                marginBottom: 16,
-                display: "flex",
-                flexDirection: "row"
+                marginBottom: 24
               }}
             >
-              <Text style={{ marginRight: 8, fontWeight: "bold" }}>
-                {tx.timestamp}
+              <Text style={{ fontWeight: "bold" }}>{tx.state}</Text>
+              <Text style={{ fontSize: 12 }}>
+                {JSON.stringify(tx, null, 2)}
               </Text>
             </View>
           );
@@ -74,14 +85,13 @@ const WalletBalance = ({ address, chainId }) => {
 
   return (
     <View>
-      {!data && <ActivityIndicator size="large" />}
+      {!data && <ActivityIndicator />}
 
       {(error || (data && data.success === false)) && (
         <Text>{JSON.stringify(error)}</Text>
       )}
 
-      {data &&
-        data.result.length > 0 &&
+      {apiHasResults(data) &&
         parseBalance(data.result).map(coin => {
           return (
             <Text key={coin.symbol}>
@@ -96,6 +106,7 @@ const WalletBalance = ({ address, chainId }) => {
 export default function App() {
   const [address, setAddress] = useState("");
   const [activeNetwork, setActiveNetwork] = useState(1);
+
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -401,7 +412,7 @@ export default function App() {
             <View style={styles.gutter}>
               <View style={{ paddingVertical: 16 }}>
                 <SegmentedControlIOS
-                  values={["Transactions", "Balance", "Profile"]}
+                  values={["Transactions", "Profile"]}
                   selectedIndex={index}
                   onChange={({ nativeEvent: { selectedSegmentIndex } }) =>
                     setIndex(selectedSegmentIndex)
@@ -415,8 +426,6 @@ export default function App() {
                 {index === 0 ? (
                   <WalletTxs address={address} chainId={activeNetwork} />
                 ) : index === 1 ? (
-                  <WalletBalance address={address} chainId={activeNetwork} />
-                ) : index === 2 ? (
                   <Text style={{ textAlign: "center", fontSize: 32 }}>👤</Text>
                 ) : null}
               </View>
