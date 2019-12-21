@@ -1,8 +1,5 @@
 import SegmentedControlIOS from "@react-native-community/segmented-control";
-import BigNumber from "bignumber.js";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import { ethers, utils } from "ethers";
+import { ethers } from "ethers";
 import "ethers/dist/shims.js";
 import { SplashScreen } from "expo";
 import * as LocalAuthentication from "expo-local-authentication";
@@ -24,70 +21,13 @@ import {
 } from "react-native";
 import store from "react-native-simple-store";
 import useSWR from "swr";
+import { parseBalance, truncateAddress } from "./helpers";
 import chainIds, { NetworkIdentifier } from "./lib/chainIds";
 import fetcher from "./lib/fetcher";
 
-dayjs.extend(relativeTime);
-
 ethers.errors.setLogLevel("error");
 
-const truncateAddress = address =>
-  `${address.slice(0, 10)}...${address.slice(address.length - 4)}`;
-
-const ACTIVE_NETWORK = chainIds[3];
-
 const API_BASE = "https://ethereum-api.xyz";
-
-const toFixed = (value, decimals) =>
-  new BigNumber(value).toFixed(decimals).toString();
-
-const formatTimestamp = ts => dayjs(Number(ts)).fromNow();
-
-const parseTxs = (txs, address) =>
-  txs.map(tx => {
-    let action = "";
-    let state = "";
-
-    if (tx.input === "0x") {
-      action = "ETH";
-    } else if (tx.input !== "0x" && tx.operations.length === 0) {
-      action = "Smart Contract Execution";
-    } else if (tx.operations.length > 0) {
-      action = "ERC20";
-    }
-
-    if (tx.error === true) {
-      state = "Error";
-    } else if (tx.to === tx.from) {
-      state = "Self";
-    } else if (tx.from === address.toLowerCase()) {
-      state = "Sent";
-    } else if (tx.to === address.toLowerCase()) {
-      state = "Received";
-    }
-
-    return {
-      action,
-      state,
-      hash: tx.hash,
-      timestamp: formatTimestamp(tx.timestamp),
-      to: tx.to,
-      from: tx.from,
-      operations: tx.operations,
-      symbol: tx.asset.symbol,
-      value: toFixed(utils.formatEther(tx.value), 2),
-      decimals: tx.asset.decimals
-    };
-  });
-
-const parseBalance = bal =>
-  bal.map(({ symbol, decimals, balance, name }) => ({
-    symbol,
-    decimals,
-    balance,
-    native: toFixed(utils.formatEther(balance), 4),
-    name
-  }));
 
 const WalletTxs = ({ address, chainId }) => {
   const { data, error } = useSWR(
@@ -107,18 +47,6 @@ const WalletTxs = ({ address, chainId }) => {
       {data &&
         data.result.length > 0 &&
         parseTxs(data.result, address).map((tx, i) => {
-          let human = "Smart Contract Interaction";
-
-          if (tx.state === "Received") {
-            human = `You received ${tx.value} ${tx.symbol} ${tx.timestamp}`;
-          } else if (tx.state === "Sent") {
-            human = `You sent ${tx.value} ${tx.symbol} ${tx.timestamp}`;
-          } else if (tx.state === "Self") {
-            human = `You sent ${tx.value} ${tx.symbol} to yourself ${tx.timestamp}`;
-          } else if (tx.state === "Error") {
-            human = "Error";
-          }
-
           return (
             <View
               key={i}
@@ -129,10 +57,7 @@ const WalletTxs = ({ address, chainId }) => {
               }}
             >
               <Text style={{ marginRight: 8, fontWeight: "bold" }}>
-                {tx.action}
-              </Text>
-              <Text>
-                {tx.action === "Smart Contract Execution" ? null : `${human}`}
+                {tx.timestamp}
               </Text>
             </View>
           );
@@ -168,29 +93,10 @@ const WalletBalance = ({ address, chainId }) => {
   );
 };
 
-const WalletCollectibles = ({ address }) => {
-  const { data, error } = useSWR(
-    () => `${API_BASE}/account-collectibles?address=${address}`,
-    fetcher
-  );
-
-  return (
-    <View>
-      {!data && <ActivityIndicator size="large" />}
-
-      {(error || (data && data.success === false)) && (
-        <Text>{JSON.stringify(error)}</Text>
-      )}
-
-      {data && <Text>{JSON.stringify(data.result, null, 2)}</Text>}
-    </View>
-  );
-};
-
 export default function App() {
   const [address, setAddress] = useState("");
-
   const [activeNetwork, setActiveNetwork] = useState(1);
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
     SplashScreen.preventAutoHide();
@@ -382,10 +288,14 @@ export default function App() {
         title: "Change Network"
       },
       buttonIndex => {
-        if (buttonIndex !== 0)
+        if (buttonIndex !== 0) {
           saveActiveNetwork(
             Object.keys(chainIds).map(key => chainIds[key])[buttonIndex - 1].id
           );
+          return;
+        }
+
+        return;
       }
     );
 
@@ -394,27 +304,32 @@ export default function App() {
       {
         options: [
           "Close",
-          "Copy address",
+
           "Change network",
           "Backup seed phrase",
           "Delete Wallet"
         ],
-        cancelButtonIndex: 0,
-        title: truncateAddress(address)
+        cancelButtonIndex: 0
       },
       buttonIndex => {
         if (buttonIndex === 1) {
-          Clipboard.setString(address);
+          changeNetwork();
+          return;
         }
-        if (buttonIndex === 2) changeNetwork();
 
-        if (buttonIndex === 3) showSeedPhrase();
+        if (buttonIndex === 2) {
+          showSeedPhrase();
+          return;
+        }
 
-        if (buttonIndex === 4) deleteWalletPrompt();
+        if (buttonIndex === 3) {
+          deleteWalletPrompt();
+          return;
+        }
+
+        return;
       }
     );
-
-  const [index, setIndex] = useState(0);
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
