@@ -455,19 +455,9 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  safeAreaView: {
-    flex: 1,
-    backgroundColor: "#fff"
-  },
   gutter: {
     paddingHorizontal: 20
   },
-  divider: {
-    height: 1,
-    backgroundColor: "black",
-    width: "100%"
-  },
-  section: { paddingVertical: 24 },
   container: {
     flex: 1
   }
