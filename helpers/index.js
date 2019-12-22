@@ -51,16 +51,6 @@ export const parseTx = (tx, address) => {
   //   action = "ERC20";
   // }
 
-  // if (tx.error === true) {
-  //   state = "Error";
-  // } else if (tx.to === tx.from) {
-  //   state = "Self";
-  // } else if (tx.from === address.toLowerCase()) {
-  //   state = "Sent";
-  // } else if (tx.to === address.toLowerCase()) {
-  //   state = "Received";
-  // }
-
   return {
     // action,
     // state,
@@ -136,23 +126,35 @@ export const isSelf = (to, from) =>
  * @returns {Array}
  */
 export const parseTxState = (txs, address) =>
-  txs.map(rawTx => {
-    const { to, from, error } = rawTx;
+  txs.map(raw => {
+    const { to, from, error } = raw;
 
-    let state = "Unhandled";
+    let state = "UNHANDLED";
 
     if (error === true) {
-      state = "Error";
+      state = "ERROR";
     } else if (isSelf(to, from)) {
-      state = "Self";
+      state = "SELF";
     } else if (isSent(from, address)) {
-      state = "Sent";
+      state = "SENT";
     } else if (isReceived(to, address)) {
-      state = "Received";
+      state = "RECEIVED";
     }
 
     return {
       state,
-      ...rawTx
+      ...raw
     };
   });
+
+/**
+ * @name parseTxTimestamp
+ * @param {Object} raw
+ */
+export const parseTxTimestamp = raw => {
+  const { timestamp } = raw;
+
+  let ago = formatTimestamp(timestamp);
+
+  return { ago, ...raw };
+};

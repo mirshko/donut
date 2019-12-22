@@ -10,13 +10,11 @@ import {
   ActionSheetIOS,
   ActivityIndicator,
   Alert,
-  Button,
   Clipboard,
-  SafeAreaView,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
+  Button as NativeButton,
   View
 } from "react-native";
 import store from "react-native-simple-store";
@@ -27,6 +25,7 @@ import {
   toFixed,
   formatTimestamp,
   isReceived,
+  parseTxTimestamp,
   isSelf,
   isSent,
   parseTxState,
@@ -34,6 +33,9 @@ import {
 } from "./helpers";
 import chainIds, { NetworkIdentifier } from "./lib/chainIds";
 import fetcher from "./lib/fetcher";
+import Layout from "./components/Layout";
+import Icon from "./components/Icon";
+import Button from "./components/Button";
 
 ethers.errors.setLogLevel("error");
 
@@ -58,21 +60,38 @@ const WalletTxs = ({ address, chainId }) => {
       )}
 
       {apiHasResults(data) &&
-        parseTxState(data.result, address).map((tx, i) => {
-          return (
-            <View
-              key={i}
-              style={{
-                marginBottom: 24
-              }}
-            >
-              <Text style={{ fontWeight: "bold" }}>{tx.state}</Text>
-              <Text style={{ fontSize: 12 }}>
-                {JSON.stringify(tx, null, 2)}
-              </Text>
-            </View>
-          );
-        })}
+        parseTxState(data.result, address)
+          .map(parseTxTimestamp)
+          .map((tx, i) => <Tx key={i} tx={tx} />)}
+    </View>
+  );
+};
+
+/**
+ *
+ * @param {Object} tx
+ */
+const Tx = ({ tx }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggle = () => setIsOpen(!isOpen);
+
+  return (
+    <View
+      style={{
+        marginBottom: 24
+      }}
+    >
+      <Text style={{ fontWeight: "bold" }}>{tx.state}</Text>
+      <Text style={{ fontWeight: "bold" }}>{tx.ago}</Text>
+
+      <NativeButton
+        title={isOpen ? "Hide Raw Tx" : "Show Raw TX"}
+        onPress={toggle}
+      />
+      {isOpen && (
+        <Text style={{ fontSize: 10 }}>{JSON.stringify(tx, null, 2)}</Text>
+      )}
     </View>
   );
 };
@@ -343,9 +362,7 @@ export default function App() {
     );
 
   return (
-    <SafeAreaView style={styles.safeAreaView}>
-      <StatusBar barStyle="dark-content" />
-
+    <Layout>
       <View style={styles.container}>
         <View
           style={{
@@ -368,16 +385,7 @@ export default function App() {
             )}
           </View>
 
-          <Text
-            accessibilityRole="image"
-            style={{
-              fontSize: 40,
-              height: 48,
-              textAlign: "center"
-            }}
-          >
-            🍩
-          </Text>
+          <Icon />
 
           <View
             style={{
@@ -387,7 +395,9 @@ export default function App() {
               display: "flex"
             }}
           >
-            {!!address && <Button title="Settings" onPress={openSettings} />}
+            {!!address && (
+              <NativeButton title="Settings" onPress={openSettings} />
+            )}
           </View>
         </View>
 
@@ -431,18 +441,16 @@ export default function App() {
               </View>
             </ScrollView>
 
-            <View style={styles.gutter}>
-              <View style={{ marginBottom: 24 }}>
-                <Button
-                  onPress={() => Alert.alert("Sending Coming Soon")}
-                  title="Send"
-                />
-              </View>
+            <View style={{ paddingHorizontal: 60 }}>
+              <Button
+                onPress={() => Alert.alert("Sending Coming Soon")}
+                title="Send"
+              />
             </View>
           </>
         )}
       </View>
-    </SafeAreaView>
+    </Layout>
   );
 }
 
