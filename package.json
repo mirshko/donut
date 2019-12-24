@@ -14,6 +14,7 @@
     "ethers": "^4.0.40",
     "expo": "~36.0.0",
     "expo-haptics": "^8.0.0",
+    "expo-linear-gradient": "~8.0.0",
     "expo-local-authentication": "^8.0.0",
     "expo-random": "^8.0.0",
     "expo-secure-store": "^8.0.0",
