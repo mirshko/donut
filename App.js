@@ -6,6 +6,8 @@ import * as LocalAuthentication from "expo-local-authentication";
 import * as Random from "expo-random";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+
 import {
   ActionSheetIOS,
   ActivityIndicator,
@@ -36,6 +38,8 @@ import fetcher from "./lib/fetcher";
 import Layout from "./components/Layout";
 import Icon from "./components/Icon";
 import Button from "./components/Button";
+
+import Start from "./views/start";
 
 ethers.errors.setLogLevel("error");
 
@@ -92,32 +96,6 @@ const Tx = ({ tx }) => {
       {isOpen && (
         <Text style={{ fontSize: 10 }}>{JSON.stringify(tx, null, 2)}</Text>
       )}
-    </View>
-  );
-};
-
-const WalletBalance = ({ address, chainId }) => {
-  const { data, error } = useSWR(
-    () => `${API_BASE}/account-assets?address=${address}&chainId=${chainId}`,
-    fetcher
-  );
-
-  return (
-    <View>
-      {!data && <ActivityIndicator />}
-
-      {(error || (data && data.success === false)) && (
-        <Text>{JSON.stringify(error)}</Text>
-      )}
-
-      {apiHasResults(data) &&
-        parseBalance(data.result).map(coin => {
-          return (
-            <Text key={coin.symbol}>
-              {coin.symbol}: {coin.native}
-            </Text>
-          );
-        })}
     </View>
   );
 };
@@ -361,6 +339,12 @@ export default function App() {
       }
     );
 
+  const openSendModal = () =>
+    Alert.alert(
+      "Send Coming Soon",
+      "Sending money in Donut Wallet coming soon."
+    );
+
   return (
     <Layout>
       <View style={styles.container}>
@@ -380,9 +364,7 @@ export default function App() {
               display: "flex"
             }}
           >
-            {activeNetwork !== 1 && !!address && (
-              <NetworkIdentifier {...chainIds[activeNetwork]} />
-            )}
+            {!!address && <NetworkIdentifier {...chainIds[activeNetwork]} />}
           </View>
 
           <Icon />
@@ -402,49 +384,45 @@ export default function App() {
         </View>
 
         {!address && (
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "center"
-            }}
-          >
-            <Button onPress={createNewWallet} title="Create New Wallet" />
-
-            <Button
-              onPress={restoreWalletPrompt}
-              title="Import Existing Wallet"
-            />
-          </View>
+          <Start create={createNewWallet} restore={restoreWalletPrompt} />
         )}
 
         {!!address && (
           <>
-            <View style={styles.gutter}>
-              <View style={{ paddingVertical: 16 }}>
-                <SegmentedControlIOS
-                  values={["Transactions", "Profile"]}
-                  selectedIndex={index}
-                  onChange={({ nativeEvent: { selectedSegmentIndex } }) =>
-                    setIndex(selectedSegmentIndex)
-                  }
-                />
-              </View>
-            </View>
-
             <ScrollView>
               <View style={styles.gutter}>
-                {index === 0 ? (
-                  <WalletTxs address={address} chainId={activeNetwork} />
-                ) : index === 1 ? (
-                  <Text style={{ textAlign: "center", fontSize: 32 }}>👤</Text>
-                ) : null}
+                <WalletTxs address={address} chainId={activeNetwork} />
               </View>
             </ScrollView>
 
-            <View style={{ paddingHorizontal: 60 }}>
-              <Button
-                onPress={() => Alert.alert("Sending Coming Soon")}
-                title="Send"
+            <View
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                paddingTop: 8,
+                paddingBottom: 24
+              }}
+            >
+              <View style={{ paddingHorizontal: 48 }}>
+                <Button onPress={openSendModal} title="Send" />
+              </View>
+
+              <LinearGradient
+                colors={[
+                  "rgba(255, 255, 255, 0.0)",
+                  "rgba(255, 255, 255, 1.0)"
+                ]}
+                locations={[0, 0.9]}
+                style={{
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  top: 0,
+                  zIndex: -1,
+                  position: "absolute"
+                }}
               />
             </View>
           </>
@@ -456,9 +434,10 @@ export default function App() {
 
 const styles = StyleSheet.create({
   gutter: {
-    paddingHorizontal: 20
+    paddingHorizontal: 24
   },
   container: {
-    flex: 1
+    flex: 1,
+    position: "relative"
   }
 });
