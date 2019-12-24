@@ -26,8 +26,7 @@ Button.propTypes = {
 const styles = StyleSheet.create({
   button: {
     backgroundColor: "pink",
-    paddingHorizontal: 24,
-    paddingVertical: 16,
+    height: 48,
     borderRadius: 99999
   },
   text: {
@@ -35,7 +34,8 @@ const styles = StyleSheet.create({
     color: "black",
     fontWeight: "600",
     letterSpacing: 0.1,
-    fontSize: 16
+    fontSize: 18,
+    lineHeight: 48
   }
 });
 
