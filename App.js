@@ -16,6 +16,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  Dimensions,
   Button as NativeButton,
   View
 } from "react-native";
@@ -43,6 +44,8 @@ import Start from "./views/start";
 
 ethers.errors.setLogLevel("error");
 
+const WINDOW_WIDTH = Dimensions.get("window").width;
+
 const API_BASE = "https://ethereum-api.xyz";
 
 const apiHasResults = data =>
@@ -56,7 +59,7 @@ const WalletTxs = ({ address, chainId }) => {
   );
 
   return (
-    <View>
+    <View style={{ marginBottom: 80 }}>
       {!data && <ActivityIndicator />}
 
       {(error || (data && data.success === false)) && (
@@ -398,9 +401,8 @@ export default function App() {
             <View
               style={{
                 position: "absolute",
-                left: 0,
-                right: 0,
                 bottom: 0,
+                width: WINDOW_WIDTH,
                 paddingTop: 8,
                 paddingBottom: 24
               }}
@@ -409,21 +411,33 @@ export default function App() {
                 <Button onPress={openSendModal} title="Send" />
               </View>
 
-              <LinearGradient
-                colors={[
-                  "rgba(255, 255, 255, 0.0)",
-                  "rgba(255, 255, 255, 1.0)"
-                ]}
-                locations={[0, 0.9]}
+              <View
+                pointerEvents="none"
                 style={{
-                  left: 0,
-                  right: 0,
+                  alignSelf: "stretch",
+                  position: "absolute",
+                  width: WINDOW_WIDTH,
+                  height: 96,
                   bottom: 0,
-                  top: 0,
-                  zIndex: -1,
-                  position: "absolute"
+                  zIndex: -1
                 }}
-              />
+              >
+                <LinearGradient
+                  colors={[
+                    "rgba(255, 255, 255, 0.0)",
+                    "rgba(255, 255, 255, 1.0)"
+                  ]}
+                  locations={[0.1, 0.7]}
+                  style={{
+                    alignSelf: "stretch",
+                    position: "absolute",
+                    width: WINDOW_WIDTH,
+                    height: 96,
+                    bottom: 0,
+                    zIndex: -1
+                  }}
+                />
+              </View>
             </View>
           </>
         )}
