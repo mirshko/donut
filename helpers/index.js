@@ -21,7 +21,37 @@ export const toFixed = (value, decimals = 4) =>
  *
  * @returns {String}
  */
-export const formatTimestamp = ts => dayjs(Number(ts)).fromNow();
+export const formatTimestamp = ts => {
+  const date = dayjs(Number(ts));
+
+  const now = dayjs();
+
+  const yesterday = now.subtract(1, "day");
+
+  const lastWeek = now.subtract(1, "week");
+
+  if (date.isSame(now, "day")) {
+    return "Today";
+  }
+
+  if (date.isSame(yesterday, "day")) {
+    return "Yesterday";
+  }
+
+  if (date.isSame(now, "week")) {
+    return date.format("dddd");
+  }
+
+  if (date.isSame(lastWeek, "week")) {
+    return "Last Week";
+  }
+
+  if (date.isSame(now, "year")) {
+    return date.format("MMMM");
+  }
+
+  return date.format("MMMM, YYYY");
+};
 
 /**
  *
