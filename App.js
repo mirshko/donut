@@ -72,6 +72,11 @@ const WalletTxs = ({ address, chainId }) => {
         onRefresh={revalidate}
         style={{ alignSelf: "stretch", height: "100%" }}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={() => (
+          <Text style={{ textAlign: "center", padding: 32, fontSize: 40 }}>
+            📭
+          </Text>
+        )}
         renderSectionHeader={({ section: { title } }) => (
           <View
             style={{
@@ -112,6 +117,22 @@ const WalletTxs = ({ address, chainId }) => {
   );
 };
 
+const State = ({ state }) => {
+  let icon = "👀";
+
+  if (state === "SENT") {
+    icon = "⬆️ Sent";
+  } else if (state === "RECEIVED") {
+    icon = "⬇️ Received";
+  } else if (state === "SELF") {
+    icon = "👤 Self";
+  } else if (state === "ERROR") {
+    icon = "❌ Error";
+  }
+
+  return icon;
+};
+
 /**
  *
  * @param {Object} tx
@@ -122,9 +143,52 @@ const Tx = ({ tx }) => {
   const toggle = () => setIsOpen(!isOpen);
 
   return (
-    <View style={{}}>
+    <View>
       <TouchableOpacity onPress={toggle}>
-        <Text style={{ fontWeight: "bold", color: "black" }}>{tx.state}</Text>
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            paddingHorizontal: 20,
+            paddingVertical: 16
+          }}
+        >
+          <View
+            style={{
+              height: 40,
+              width: 40,
+              backgroundColor: "#f0f0f0",
+              borderRadius: 99999
+            }}
+          />
+
+          <View
+            style={{
+              display: "flex",
+              marginLeft: 16
+            }}
+          >
+            <Text
+              style={{
+                fontWeight: "600",
+                letterSpacing: 12 * 0.01,
+                fontSize: 12,
+                lineHeight: 20
+              }}
+            >
+              <State state={tx.state} />
+            </Text>
+
+            <Text
+              style={{
+                fontSize: 14,
+                lineHeight: 20
+              }}
+            >
+              {tx.asset.name}
+            </Text>
+          </View>
+        </View>
       </TouchableOpacity>
 
       {isOpen && (
