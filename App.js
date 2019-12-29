@@ -146,6 +146,7 @@ const Tx = ({ tx }) => {
 export default function App() {
   const [address, setAddress] = useState("");
   const [activeNetwork, setActiveNetwork] = useState(1);
+  const [seed, setSeed] = useState({});
 
   const [index, setIndex] = useState(0);
 
@@ -214,8 +215,16 @@ export default function App() {
     try {
       const address = await store.get("donutWalletAddress");
 
+      const mnemonic = await SecureStore.getItemAsync(
+        "secureDonutWalletMnemonic"
+      );
+
       if (await address) {
         setAddress(await address);
+      }
+
+      if ((await address) === null) {
+        setSeed(mnemonic);
       }
 
       SplashScreen.hide();
@@ -224,16 +233,7 @@ export default function App() {
     }
   };
 
-  const restoreWallet = async mnemonic => {
-    if (await loadSeedPhrase()) {
-      Alert.alert(
-        "Cannot Create New Wallet",
-        "There is already an active wallet for this device"
-      );
-
-      return;
-    }
-
+  const replaceWallet = async mnemonic => {
     try {
       const wallet = ethers.Wallet.fromMnemonic(mnemonic);
 
@@ -255,7 +255,7 @@ export default function App() {
     }
   };
 
-  const restoreWalletPrompt = () => {
+  const replaceWalletPrompt = () => {
     Alert.prompt("Import", "Import your seed phrase to restore your wallet.", [
       {
         style: "cancel",
@@ -263,7 +263,7 @@ export default function App() {
       },
       {
         text: "Import",
-        onPress: async phrase => await restoreWallet(phrase)
+        onPress: async phrase => await replaceWallet(phrase)
       }
     ]);
   };
@@ -355,7 +355,6 @@ export default function App() {
       {
         options: [
           "Close",
-
           "Change network",
           "Backup seed phrase",
           "Delete Wallet"
@@ -390,6 +389,8 @@ export default function App() {
 
   return (
     <Layout>
+      <Text>{JSON.stringify(seed)}</Text>
+
       <View style={styles.container}>
         <View
           style={{
@@ -427,7 +428,7 @@ export default function App() {
         </View>
 
         {!address && (
-          <Start create={createNewWallet} restore={restoreWalletPrompt} />
+          <Start create={createNewWallet} restore={replaceWalletPrompt} />
         )}
 
         {!!address && (
