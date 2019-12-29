@@ -21,7 +21,10 @@
     "ios": {
       "buildNumber": "6",
       "supportsTablet": false,
-      "bundleIdentifier": "com.reiner.donut"
+      "bundleIdentifier": "com.reiner.donut",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Verify Identity"
+      }
     }
   }
 }
