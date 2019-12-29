@@ -7,6 +7,7 @@ import * as Random from "expo-random";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
+import groupBy from "lodash.groupby";
 
 import {
   ActionSheetIOS,
@@ -67,9 +68,27 @@ const WalletTxs = ({ address, chainId }) => {
       )}
 
       {apiHasResults(data) &&
-        parseTxState(data.result, address)
-          .map(parseTxTimestamp)
-          .map((tx, i) => <Tx key={i} tx={tx} />)}
+        Object.keys(
+          groupBy(
+            parseTxState(data.result, address).map(parseTxTimestamp),
+            "ago"
+          )
+        )
+          .map(title => ({
+            title,
+            data: groupBy(
+              parseTxState(data.result, address).map(parseTxTimestamp),
+              "ago"
+            )[title]
+          }))
+          .map(({ title, data }, i) => (
+            <React.Fragment key={i}>
+              <Text style={{ fontSize: 32 }}>{title}</Text>
+              {data.map((tx, ii) => (
+                <Tx key={ii} tx={tx} />
+              ))}
+            </React.Fragment>
+          ))}
     </View>
   );
 };
@@ -90,7 +109,6 @@ const Tx = ({ tx }) => {
       }}
     >
       <Text style={{ fontWeight: "bold" }}>{tx.state}</Text>
-      <Text style={{ fontWeight: "bold" }}>{tx.ago}</Text>
 
       <NativeButton
         title={isOpen ? "Hide Raw Tx" : "Show Raw TX"}
