@@ -505,11 +505,9 @@ export default function App() {
           </View>
         </View>
 
-        {!address && (
+        {!address ? (
           <Start create={createNewWallet} restore={replaceWalletPrompt} />
-        )}
-
-        {!!address && (
+        ) : (
           <>
             <WalletTxs address={address} chainId={activeNetwork} />
 
@@ -523,31 +521,6 @@ export default function App() {
             >
               <View style={{ paddingHorizontal: 48 }}>
                 <Button onPress={openSendModal} title="Send" />
-              </View>
-
-              <View
-                pointerEvents="none"
-                style={{
-                  alignSelf: "stretch",
-                  position: "absolute",
-                  width: WINDOW_WIDTH,
-                  height: 96,
-                  bottom: 0,
-                  zIndex: -1
-                }}
-              >
-                <LinearGradient
-                  colors={["#ffffff00", "white"]}
-                  locations={[0.0, 0.5]}
-                  style={{
-                    alignSelf: "stretch",
-                    position: "absolute",
-                    width: WINDOW_WIDTH,
-                    height: 96,
-                    bottom: 0,
-                    zIndex: -1
-                  }}
-                />
               </View>
             </View>
           </>
