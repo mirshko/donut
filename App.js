@@ -16,6 +16,7 @@ import {
   Clipboard,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
   SectionList,
   Text,
   Dimensions,
@@ -23,7 +24,7 @@ import {
   View
 } from "react-native";
 import store from "react-native-simple-store";
-import useSWR from "swr";
+import useSWR, { trigger } from "swr";
 import {
   parseBalance,
   parseTx,
@@ -54,7 +55,7 @@ const apiHasResults = data =>
   !!data && data.success === true && data.result.length > 0 ? true : false;
 
 const WalletTxs = ({ address, chainId }) => {
-  const { data, error } = useSWR(
+  const { data, error, isValidating, revalidate } = useSWR(
     () =>
       `${API_BASE}/account-transactions?address=${address}&chainId=${chainId}`,
     fetcher
@@ -62,36 +63,38 @@ const WalletTxs = ({ address, chainId }) => {
 
   return (
     <View style={{ marginBottom: 80 }}>
-      {!data && <ActivityIndicator />}
-
       {(error || (data && data.success === false)) && (
         <Text>{JSON.stringify(error)}</Text>
       )}
 
-      {apiHasResults(data) && (
-        <SectionList
-          style={{ marginTop: 24 }}
-          renderSectionHeader={({ section: { title } }) => (
-            <View
-              style={{
-                margin: 24,
-                alignSelf: "center",
-                paddingHorizontal: 12,
-                paddingVertical: 4,
-                backgroundColor: "#f0f0f0",
-                borderRadius: 99999
-              }}
+      <SectionList
+        refreshing={isValidating}
+        onRefresh={revalidate}
+        style={{ alignSelf: "stretch", height: "100%" }}
+        showsVerticalScrollIndicator={false}
+        renderSectionHeader={({ section: { title } }) => (
+          <View
+            style={{
+              marginVertical: 16,
+              alignSelf: "center",
+              paddingHorizontal: 12,
+              paddingVertical: 4,
+              backgroundColor: "#f0f0f0",
+              borderRadius: 99999
+            }}
+          >
+            <Text
+              style={{ fontSize: 14, fontWeight: "500", textAlign: "center" }}
             >
-              <Text
-                style={{ fontSize: 14, fontWeight: "500", textAlign: "center" }}
-              >
-                {title}
-              </Text>
-            </View>
-          )}
-          keyExtractor={(item, i) => i}
-          renderItem={({ item }) => <Tx tx={item} />}
-          sections={Object.keys(
+              {title}
+            </Text>
+          </View>
+        )}
+        keyExtractor={(item, i) => i}
+        renderItem={({ item }) => <Tx tx={item} />}
+        sections={
+          apiHasResults(data) &&
+          Object.keys(
             groupBy(
               parseTxState(data.result, address).map(parseTxTimestamp),
               "ago"
@@ -102,9 +105,9 @@ const WalletTxs = ({ address, chainId }) => {
               parseTxState(data.result, address).map(parseTxTimestamp),
               "ago"
             )[title]
-          }))}
-        />
-      )}
+          }))
+        }
+      />
     </View>
   );
 };
@@ -119,19 +122,22 @@ const Tx = ({ tx }) => {
   const toggle = () => setIsOpen(!isOpen);
 
   return (
-    <View
-      style={{
-        marginBottom: 24
-      }}
-    >
-      <Text style={{ fontWeight: "bold", color: "black" }}>{tx.state}</Text>
+    <View style={{}}>
+      <TouchableOpacity onPress={toggle}>
+        <Text style={{ fontWeight: "bold", color: "black" }}>{tx.state}</Text>
+      </TouchableOpacity>
 
-      <NativeButton
-        title={isOpen ? "Hide Raw Tx" : "Show Raw TX"}
-        onPress={toggle}
-      />
       {isOpen && (
-        <Text style={{ fontSize: 10 }}>{JSON.stringify(tx, null, 2)}</Text>
+        <Text
+          style={{
+            fontSize: 8,
+            padding: 8,
+            backgroundColor: "black",
+            color: "white"
+          }}
+        >
+          {JSON.stringify(tx, null, 2)}
+        </Text>
       )}
     </View>
   );
@@ -426,9 +432,7 @@ export default function App() {
 
         {!!address && (
           <>
-            <View style={styles.gutter}>
-              <WalletTxs address={address} chainId={activeNetwork} />
-            </View>
+            <WalletTxs address={address} chainId={activeNetwork} />
 
             <View
               style={{
