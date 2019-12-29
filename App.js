@@ -68,7 +68,7 @@ const WalletTxs = ({ address, chainId }) => {
       )}
 
       <SectionList
-        refreshing={isValidating}
+        refreshing={!data || isValidating}
         onRefresh={revalidate}
         style={{ alignSelf: "stretch", height: "100%" }}
         showsVerticalScrollIndicator={false}
