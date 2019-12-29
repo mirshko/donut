@@ -16,6 +16,7 @@ import {
   Clipboard,
   ScrollView,
   StyleSheet,
+  SectionList,
   Text,
   Dimensions,
   Button as NativeButton,
@@ -67,28 +68,42 @@ const WalletTxs = ({ address, chainId }) => {
         <Text>{JSON.stringify(error)}</Text>
       )}
 
-      {apiHasResults(data) &&
-        Object.keys(
-          groupBy(
-            parseTxState(data.result, address).map(parseTxTimestamp),
-            "ago"
-          )
-        )
-          .map(title => ({
+      {apiHasResults(data) && (
+        <SectionList
+          style={{ marginTop: 24 }}
+          renderSectionHeader={({ section: { title } }) => (
+            <Text
+              style={{
+                fontSize: 16,
+                margin: 4,
+                alignSelf: "center",
+                paddingHorizontal: 8,
+                paddingVertical: 4,
+                textAlign: "center",
+                backgroundColor: "pink",
+                color: "black",
+                borderRadius: 99999
+              }}
+            >
+              {title}
+            </Text>
+          )}
+          keyExtractor={(item, i) => i}
+          renderItem={({ item }) => <Tx tx={item} />}
+          sections={Object.keys(
+            groupBy(
+              parseTxState(data.result, address).map(parseTxTimestamp),
+              "ago"
+            )
+          ).map(title => ({
             title,
             data: groupBy(
               parseTxState(data.result, address).map(parseTxTimestamp),
               "ago"
             )[title]
-          }))
-          .map(({ title, data }, i) => (
-            <React.Fragment key={i}>
-              <Text style={{ fontSize: 32 }}>{title}</Text>
-              {data.map((tx, ii) => (
-                <Tx key={ii} tx={tx} />
-              ))}
-            </React.Fragment>
-          ))}
+          }))}
+        />
+      )}
     </View>
   );
 };
@@ -108,7 +123,7 @@ const Tx = ({ tx }) => {
         marginBottom: 24
       }}
     >
-      <Text style={{ fontWeight: "bold" }}>{tx.state}</Text>
+      <Text style={{ fontWeight: "bold", color: "black" }}>{tx.state}</Text>
 
       <NativeButton
         title={isOpen ? "Hide Raw Tx" : "Show Raw TX"}
@@ -410,11 +425,9 @@ export default function App() {
 
         {!!address && (
           <>
-            <ScrollView>
-              <View style={styles.gutter}>
-                <WalletTxs address={address} chainId={activeNetwork} />
-              </View>
-            </ScrollView>
+            <View style={styles.gutter}>
+              <WalletTxs address={address} chainId={activeNetwork} />
+            </View>
 
             <View
               style={{
