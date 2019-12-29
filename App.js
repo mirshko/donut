@@ -72,21 +72,22 @@ const WalletTxs = ({ address, chainId }) => {
         <SectionList
           style={{ marginTop: 24 }}
           renderSectionHeader={({ section: { title } }) => (
-            <Text
+            <View
               style={{
-                fontSize: 16,
-                margin: 4,
+                margin: 24,
                 alignSelf: "center",
-                paddingHorizontal: 8,
+                paddingHorizontal: 12,
                 paddingVertical: 4,
-                textAlign: "center",
-                backgroundColor: "pink",
-                color: "black",
+                backgroundColor: "#f0f0f0",
                 borderRadius: 99999
               }}
             >
-              {title}
-            </Text>
+              <Text
+                style={{ fontSize: 14, fontWeight: "500", textAlign: "center" }}
+              >
+                {title}
+              </Text>
+            </View>
           )}
           keyExtractor={(item, i) => i}
           renderItem={({ item }) => <Tx tx={item} />}
