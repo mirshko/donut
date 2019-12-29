@@ -46,6 +46,10 @@ export const formatTimestamp = ts => {
     return "Last Week";
   }
 
+  if (date.isSame(now, "month")) {
+    return "This Month";
+  }
+
   if (date.isSame(now, "year")) {
     return date.format("MMMM");
   }
