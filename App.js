@@ -452,7 +452,6 @@ export default function App() {
                 position: "absolute",
                 bottom: 0,
                 width: WINDOW_WIDTH,
-                paddingTop: 8,
                 paddingBottom: 24
               }}
             >
@@ -472,11 +471,8 @@ export default function App() {
                 }}
               >
                 <LinearGradient
-                  colors={[
-                    "rgba(255, 255, 255, 0.0)",
-                    "rgba(255, 255, 255, 1.0)"
-                  ]}
-                  locations={[0.1, 0.7]}
+                  colors={["#ffffff00", "white"]}
+                  locations={[0.0, 0.5]}
                   style={{
                     alignSelf: "stretch",
                     position: "absolute",
