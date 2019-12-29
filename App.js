@@ -146,9 +146,6 @@ const Tx = ({ tx }) => {
 export default function App() {
   const [address, setAddress] = useState("");
   const [activeNetwork, setActiveNetwork] = useState(1);
-  const [seed, setSeed] = useState({});
-
-  const [index, setIndex] = useState(0);
 
   useEffect(() => {
     SplashScreen.preventAutoHide();
@@ -215,19 +212,36 @@ export default function App() {
     try {
       const address = await store.get("donutWalletAddress");
 
-      const mnemonic = await SecureStore.getItemAsync(
-        "secureDonutWalletMnemonic"
-      );
-
       if (await address) {
         setAddress(await address);
       }
 
-      if ((await address) === null) {
-        setSeed(mnemonic);
+      if ((await address) === null && (await loadSeedPhrase())) {
+        await restoreWallet();
       }
 
       SplashScreen.hide();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const restoreWallet = async () => {
+    try {
+      const mnemonic = await loadSeedPhrase();
+
+      if (!!mnemonic) {
+        const wallet = ethers.Wallet.fromMnemonic(mnemonic);
+
+        /**
+         * Store restored wallet address in AsyncStorage
+         */
+        await store.save("donutWalletAddress", wallet.address);
+
+        await getWalletAddress();
+      }
+
+      return;
     } catch (e) {
       console.error(e);
     }
@@ -389,8 +403,6 @@ export default function App() {
 
   return (
     <Layout>
-      <Text>{JSON.stringify(seed)}</Text>
-
       <View style={styles.container}>
         <View
           style={{
