@@ -72,11 +72,13 @@ const WalletTxs = ({ address, chainId }) => {
         onRefresh={revalidate}
         style={{ alignSelf: "stretch", height: "100%" }}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={() => (
-          <Text style={{ textAlign: "center", padding: 32, fontSize: 40 }}>
-            📭
-          </Text>
-        )}
+        ListEmptyComponent={
+          !!data && (
+            <Text style={{ textAlign: "center", padding: 32, fontSize: 40 }}>
+              📭
+            </Text>
+          )
+        }
         renderSectionHeader={({ section: { title } }) => (
           <View
             style={{
