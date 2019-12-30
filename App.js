@@ -38,6 +38,7 @@ import {
   truncateAddress
 } from "./helpers";
 import chainIds, { NetworkIdentifier } from "./lib/chainIds";
+import { WINDOW_WIDTH, API_BASE } from "./constants";
 import fetcher from "./lib/fetcher";
 import Layout from "./components/Layout";
 import Icon from "./components/Icon";
@@ -46,10 +47,6 @@ import Button from "./components/Button";
 import Start from "./views/start";
 
 ethers.errors.setLogLevel("error");
-
-const WINDOW_WIDTH = Dimensions.get("window").width;
-
-const API_BASE = "https://ethereum-api.xyz";
 
 const apiHasResults = data =>
   !!data && data.success === true && data.result.length > 0 ? true : false;
