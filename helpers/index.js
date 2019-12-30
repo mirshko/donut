@@ -192,3 +192,13 @@ export const parseTxTimestamp = raw => {
 
   return { ago, ...raw };
 };
+
+/**
+ * @name apiHasResults
+ * @param {Object} data
+ *
+ * @returns {Boolean}
+ */
+
+export const apiHasResults = data =>
+  !!data && data.success === true && data.result.length > 0 ? true : false;

@@ -1,4 +1,3 @@
-import SegmentedControlIOS from "@react-native-community/segmented-control";
 import { ethers } from "ethers";
 import "ethers/dist/shims.js";
 import { SplashScreen } from "expo";
@@ -6,205 +5,24 @@ import * as LocalAuthentication from "expo-local-authentication";
 import * as Random from "expo-random";
 import * as SecureStore from "expo-secure-store";
 import React, { useEffect, useState } from "react";
-import { LinearGradient } from "expo-linear-gradient";
-import groupBy from "lodash.groupby";
 
 import {
   ActionSheetIOS,
-  ActivityIndicator,
   Alert,
   Clipboard,
-  ScrollView,
   StyleSheet,
-  TouchableOpacity,
-  SectionList,
-  Text,
-  Dimensions,
   Button as NativeButton,
   View
 } from "react-native";
 import store from "react-native-simple-store";
-import useSWR, { trigger } from "swr";
-import {
-  parseBalance,
-  parseTx,
-  toFixed,
-  formatTimestamp,
-  isReceived,
-  parseTxTimestamp,
-  isSelf,
-  isSent,
-  parseTxState,
-  truncateAddress
-} from "./helpers";
 import chainIds, { NetworkIdentifier } from "./lib/chainIds";
-import { WINDOW_WIDTH, API_BASE } from "./constants";
-import fetcher from "./lib/fetcher";
 import Layout from "./components/Layout";
 import Icon from "./components/Icon";
-import Button from "./components/Button";
 
 import Start from "./views/start";
+import Transactions from "./views/transactions";
 
 ethers.errors.setLogLevel("error");
-
-const apiHasResults = data =>
-  !!data && data.success === true && data.result.length > 0 ? true : false;
-
-const WalletTxs = ({ address, chainId }) => {
-  const { data, error, isValidating, revalidate } = useSWR(
-    () =>
-      `${API_BASE}/account-transactions?address=${address}&chainId=${chainId}`,
-    fetcher
-  );
-
-  return (
-    <View style={{ marginBottom: 80 }}>
-      {(error || (data && data.success === false)) && (
-        <Text>{JSON.stringify(error)}</Text>
-      )}
-
-      <SectionList
-        refreshing={!data || isValidating}
-        onRefresh={revalidate}
-        style={{ alignSelf: "stretch", height: "100%" }}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          !!data && (
-            <Text style={{ textAlign: "center", padding: 32, fontSize: 40 }}>
-              📭
-            </Text>
-          )
-        }
-        renderSectionHeader={({ section: { title } }) => (
-          <View
-            style={{
-              marginVertical: 16,
-              alignSelf: "center",
-              paddingHorizontal: 12,
-              paddingVertical: 4,
-              backgroundColor: "#f0f0f0",
-              borderRadius: 99999
-            }}
-          >
-            <Text
-              style={{ fontSize: 14, fontWeight: "500", textAlign: "center" }}
-            >
-              {title}
-            </Text>
-          </View>
-        )}
-        keyExtractor={(item, i) => i}
-        renderItem={({ item }) => <Tx tx={item} />}
-        sections={
-          apiHasResults(data) &&
-          Object.keys(
-            groupBy(
-              parseTxState(data.result, address).map(parseTxTimestamp),
-              "ago"
-            )
-          ).map(title => ({
-            title,
-            data: groupBy(
-              parseTxState(data.result, address).map(parseTxTimestamp),
-              "ago"
-            )[title]
-          }))
-        }
-      />
-    </View>
-  );
-};
-
-const State = ({ state }) => {
-  let icon = "👀";
-
-  if (state === "SENT") {
-    icon = "⬆️ Sent";
-  } else if (state === "RECEIVED") {
-    icon = "⬇️ Received";
-  } else if (state === "SELF") {
-    icon = "👤 Self";
-  } else if (state === "ERROR") {
-    icon = "❌ Error";
-  }
-
-  return icon;
-};
-
-/**
- *
- * @param {Object} tx
- */
-const Tx = ({ tx }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const toggle = () => setIsOpen(!isOpen);
-
-  return (
-    <View>
-      <TouchableOpacity onPress={toggle}>
-        <View
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            paddingHorizontal: 20,
-            paddingVertical: 16
-          }}
-        >
-          <View
-            style={{
-              height: 40,
-              width: 40,
-              backgroundColor: "#f0f0f0",
-              borderRadius: 99999
-            }}
-          />
-
-          <View
-            style={{
-              display: "flex",
-              marginLeft: 16
-            }}
-          >
-            <Text
-              style={{
-                fontWeight: "600",
-                letterSpacing: 12 * 0.01,
-                fontSize: 12,
-                lineHeight: 20
-              }}
-            >
-              <State state={tx.state} />
-            </Text>
-
-            <Text
-              style={{
-                fontSize: 14,
-                lineHeight: 20
-              }}
-            >
-              {tx.asset.name}
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-
-      {isOpen && (
-        <Text
-          style={{
-            fontSize: 8,
-            padding: 8,
-            backgroundColor: "black",
-            color: "white"
-          }}
-        >
-          {JSON.stringify(tx, null, 2)}
-        </Text>
-      )}
-    </View>
-  );
-};
 
 export default function App() {
   const [address, setAddress] = useState("");
@@ -505,22 +323,11 @@ export default function App() {
         {!address ? (
           <Start create={createNewWallet} restore={replaceWalletPrompt} />
         ) : (
-          <>
-            <WalletTxs address={address} chainId={activeNetwork} />
-
-            <View
-              style={{
-                position: "absolute",
-                bottom: 0,
-                width: WINDOW_WIDTH,
-                paddingBottom: 24
-              }}
-            >
-              <View style={{ paddingHorizontal: 48 }}>
-                <Button onPress={openSendModal} title="Send" />
-              </View>
-            </View>
-          </>
+          <Transactions
+            address={address}
+            chainId={activeNetwork}
+            onSend={openSendModal}
+          />
         )}
       </View>
     </Layout>
