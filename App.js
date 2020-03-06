@@ -4,7 +4,7 @@ import { SplashScreen } from "expo";
 import * as LocalAuthentication from "expo-local-authentication";
 import * as Random from "expo-random";
 import * as SecureStore from "expo-secure-store";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Fragment } from "react";
 
 import {
   ActionSheetIOS,
@@ -285,49 +285,53 @@ export default function App() {
   return (
     <Layout>
       <View style={styles.container}>
-        <View
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            ...styles.gutter
-          }}
-        >
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "flex-start",
-              display: "flex"
-            }}
-          >
-            {!!address && <NetworkIdentifier {...chainIds[activeNetwork]} />}
-          </View>
-
-          <Icon />
-
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "flex-end",
-              display: "flex"
-            }}
-          >
-            {!!address && (
-              <NativeButton title="Settings" onPress={openSettings} />
-            )}
-          </View>
-        </View>
-
         {!address ? (
           <Start create={createNewWallet} restore={replaceWalletPrompt} />
         ) : (
-          <Transactions
-            address={address}
-            chainId={activeNetwork}
-            onSend={openSendModal}
-          />
+          <Fragment>
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                ...styles.gutter
+              }}
+            >
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "flex-start",
+                  display: "flex"
+                }}
+              >
+                {!!address && (
+                  <NetworkIdentifier {...chainIds[activeNetwork]} />
+                )}
+              </View>
+
+              <Icon />
+
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "flex-end",
+                  display: "flex"
+                }}
+              >
+                {!!address && (
+                  <NativeButton title="Settings" onPress={openSettings} />
+                )}
+              </View>
+            </View>
+
+            <Transactions
+              address={address}
+              chainId={activeNetwork}
+              onSend={openSendModal}
+            />
+          </Fragment>
         )}
       </View>
     </Layout>

@@ -26,7 +26,7 @@ Button.propTypes = {
 const styles = StyleSheet.create({
   button: {
     backgroundColor: "#000",
-    height: 48,
+    height: 64,
     borderRadius: 99999
   },
   text: {
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     letterSpacing: 0.1,
     fontSize: 18,
-    lineHeight: 48
+    lineHeight: 64
   }
 });
 

@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
   icon: {
     fontSize: 40,
     height: 48,
-    textAlign: "center"
+    width: 48
   }
 });
 
