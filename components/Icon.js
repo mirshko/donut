@@ -8,7 +8,7 @@ import { StyleSheet, Text } from "react-native";
  */
 const Icon = () => (
   <Text accessibilityRole="image" style={styles.icon}>
-    🍩
+    ⚪️
   </Text>
 );
 

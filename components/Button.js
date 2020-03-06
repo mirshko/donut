@@ -25,13 +25,13 @@ Button.propTypes = {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: "pink",
+    backgroundColor: "#000",
     height: 48,
     borderRadius: 99999
   },
   text: {
     textAlign: "center",
-    color: "black",
+    color: "#fff",
     fontWeight: "600",
     letterSpacing: 0.1,
     fontSize: 18,

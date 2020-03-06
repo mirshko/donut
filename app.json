@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Donut",
+    "name": "Wallet",
     "slug": "donut",
     "privacy": "unlisted",
     "sdkVersion": "36.0.0",
@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFC0CB"
+      "backgroundColor": "#ffffff"
     },
     "backgroundColor": "#000000",
     "updates": {
@@ -19,7 +19,7 @@
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "buildNumber": "7",
+      "buildNumber": "8",
       "supportsTablet": false,
       "bundleIdentifier": "com.reiner.donut",
       "infoPlist": {
